@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BarChart3, Bell, BookOpen, CheckCircle2, CloudOff, MapPin, MessageSquareWarning, ShieldCheck, Users, Wifi } from 'lucide-react';
+import { BarChart3, Bell, BookOpen, CheckCircle2, CloudOff, LayoutDashboard, MapPin, MessageSquareWarning, ShieldCheck, Users, Wifi } from 'lucide-react';
 import './styles.css';
 
 const initialReports = [
@@ -171,6 +171,13 @@ function App() {
         {toast && <div className="toast"><CheckCircle2 size={16} />{toast}</div>}
       </>}
     </section>}
+
+    <nav className="bottom-nav">
+      <button onClick={() => setMode('community')} className={mode === 'community' ? 'active' : ''}><Users size={18} />Home</button>
+      <button onClick={() => { setMode('community'); setActiveView('services'); }} className={mode === 'community' && activeView === 'services' ? 'active' : ''}><MapPin size={18} />Services</button>
+      <button onClick={() => { setMode('community'); setActiveView('updates'); }} className={mode === 'community' && activeView === 'updates' ? 'active' : ''}><Bell size={18} />Updates</button>
+      <button onClick={() => setMode('admin')} className={mode === 'admin' ? 'active' : ''}><LayoutDashboard size={18} />Admin</button>
+    </nav>
   </main>;
 }
 

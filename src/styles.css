@@ -22,7 +22,7 @@ input {
   min-height: 100vh;
   margin: 0 auto;
   background: #f8fafc;
-  padding: 18px;
+  padding: 18px 18px 92px;
 }
 
 header,
@@ -366,6 +366,44 @@ form button {
   padding: 10px 12px;
 }
 
+.bottom-nav {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  max-width: 430px;
+  margin: 0 auto;
+  border: 1px solid #dbe3ef;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 8px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(14px);
+}
+
+.bottom-nav button {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 17px;
+  background: transparent;
+  color: #64748b;
+  padding: 8px 4px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.bottom-nav button.active {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 @media (min-width: 760px) {
   body {
     padding: 28px;
@@ -402,5 +440,9 @@ form button {
 
   .content-card {
     padding: 26px;
+  }
+
+  .bottom-nav {
+    display: none;
   }
 }
