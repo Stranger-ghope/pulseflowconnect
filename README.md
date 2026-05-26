@@ -35,7 +35,7 @@ The current version includes a service worker, web app manifest, offline shell c
 2. Tap Find services to show service discovery.
 3. Tap Read guides to show cacheable learning content.
 4. Tap Report issue and save a sample access problem to show local persistence.
-5. Tap Get updates and explain that WhatsApp is used for neutral reminders that bring users back to the app.
+5. Tap Get updates, enter a first name and phone number, and explain that WhatsApp is used for neutral reminders that bring users back to the app.
 6. Switch to Admin dashboard and use Login as admin.
 7. Show the metrics, follow-up queue, Send update buttons, and channel status.
 8. Explain that production WhatsApp messages would use Meta Cloud API credentials and approved templates.
@@ -103,6 +103,8 @@ WHATSAPP_TOKEN=your_server_side_token
 ```
 
 Do not place Meta tokens in frontend code. Messages in this POC are intentionally neutral and do not include sensitive report details.
+
+For approved WhatsApp templates, use `{{1}}` for the user's first name or nickname. If a name is not supplied, the backend-safe fallback is `PulseFlow user`.
 
 ## Suggested proposal framing
 

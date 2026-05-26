@@ -21,6 +21,7 @@ function App() {
   const [mode, setMode] = useState('community');
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
   const [issue, setIssue] = useState('');
+  const [name, setName] = useState('');
   const [phone, setPhone] = useState('+265');
   const [toast, setToast] = useState('');
   const [reports, setReports] = useState(() => {
@@ -71,10 +72,11 @@ function App() {
       const response = await fetch('/api/whatsapp/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, name: 'PulseFlow user' }),
+        body: JSON.stringify({ phone, name: name.trim() || 'PulseFlow user' }),
       });
       const result = await response.json();
       setToast(result.message || 'Update request saved.');
+      setName('');
       setPhone('+265');
     } catch {
       setToast('Update request saved on this device.');
@@ -134,7 +136,7 @@ function App() {
           <h2>Why WhatsApp updates?</h2>
           <p className="hint">Many users may not reopen the app every day. WhatsApp lets the team send a short reminder, appointment note, or service update that brings the user back to the app.</p>
           <div className="example-message">Example: “Your saved service has an update. Open PulseFlow for details.”</div>
-          <form onSubmit={sendUpdate}><input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="WhatsApp number e.g. +265..." /><button>Request</button></form>
+          <form onSubmit={sendUpdate}><input value={name} onChange={(event) => setName(event.target.value)} placeholder="First name or nickname" /><input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="WhatsApp number e.g. +265..." /><button>Request</button></form>
         </>}
 
         {toast && <div className="toast"><CheckCircle2 size={16} />{toast}</div>}
