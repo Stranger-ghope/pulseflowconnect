@@ -68,9 +68,11 @@ This project is ready for Vercel deployment from GitHub.
 WHATSAPP_API_VERSION=v20.0
 WHATSAPP_PHONE_NUMBER_ID=your_meta_phone_number_id
 WHATSAPP_TOKEN=your_server_side_token
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=choose_a_private_verification_phrase
 ```
 
 Do not commit a real `.env` file. The deployed API route is available at `/api/whatsapp/notify`.
+The deployed webhook verification route is available at `/api/whatsapp/webhook`.
 
 ## Preview the installable PWA
 
@@ -100,11 +102,23 @@ Create a local `.env` or set server environment variables using the keys shown i
 WHATSAPP_API_VERSION=v20.0
 WHATSAPP_PHONE_NUMBER_ID=your_meta_phone_number_id
 WHATSAPP_TOKEN=your_server_side_token
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=choose_a_private_verification_phrase
 ```
 
 Do not place Meta tokens in frontend code. Messages in this POC are intentionally neutral and do not include sensitive report details.
 
 For approved WhatsApp templates, use `{{1}}` for the user's first name or nickname. If a name is not supplied, the backend-safe fallback is `PulseFlow user`.
+
+## WhatsApp webhook setup
+
+After deploying to Vercel, configure the webhook in Meta using:
+
+```text
+Callback URL: https://your-vercel-domain.vercel.app/api/whatsapp/webhook
+Verify token: the same value as WHATSAPP_WEBHOOK_VERIFY_TOKEN
+```
+
+Subscribe to WhatsApp webhook fields such as messages and message status events. The current webhook confirms verification and logs incoming events for delivery/read-status testing.
 
 ## Suggested proposal framing
 
