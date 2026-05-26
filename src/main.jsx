@@ -24,6 +24,8 @@ function App() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('+265');
   const [toast, setToast] = useState('');
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
   const [reports, setReports] = useState(() => {
     const savedReports = localStorage.getItem('pulseflow-reports');
     return savedReports ? JSON.parse(savedReports) : initialReports;
@@ -31,8 +33,13 @@ function App() {
 
   useEffect(() => {
     const updateStatus = () => setOnline(navigator.onLine);
+    const captureInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
     window.addEventListener('online', updateStatus);
     window.addEventListener('offline', updateStatus);
+    window.addEventListener('beforeinstallprompt', captureInstallPrompt);
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js');
@@ -41,6 +48,7 @@ function App() {
     return () => {
       window.removeEventListener('online', updateStatus);
       window.removeEventListener('offline', updateStatus);
+      window.removeEventListener('beforeinstallprompt', captureInstallPrompt);
     };
   }, []);
 
@@ -87,11 +95,32 @@ function App() {
     setToast(`Demo WhatsApp update queued for: ${report.issue}`);
   }
 
+  async function installApp() {
+    if (!installPrompt) {
+      setShowInstallHelp(true);
+      return;
+    }
+
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
+  }
+
   return <main className="app-shell">
     <header>
       <div className="brand"><span>PF</span><div><strong>PulseFlow</strong><small>Community support finder</small></div></div>
       <div className="status">{online ? <Wifi size={15} /> : <CloudOff size={15} />}{online ? 'Online' : 'Offline'}</div>
     </header>
+
+    <section className="install-card">
+      <div><strong>Install this app</strong><span>Save PulseFlow to your phone home screen for quicker access.</span></div>
+      <button onClick={installApp}>Install</button>
+    </section>
+
+    {showInstallHelp && <section className="install-help">
+      <strong>Manual install</strong>
+      <span>In Chrome, tap the three-dot menu and choose Add to Home screen. If it is missing, clear this site's data and reopen it.</span>
+    </section>}
 
     <nav className="mode-switch">
       <button onClick={() => setMode('community')} className={mode === 'community' ? 'active' : ''}>Community app</button>

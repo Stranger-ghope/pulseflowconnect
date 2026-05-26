@@ -108,6 +108,47 @@ header {
   font-weight: 800;
 }
 
+.install-card,
+.install-help {
+  border: 1px solid #dbe3ef;
+  border-radius: 20px;
+  background: white;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.install-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.install-card strong,
+.install-card span,
+.install-help strong,
+.install-help span {
+  display: block;
+}
+
+.install-card span,
+.install-help span {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.install-card button {
+  border: 0;
+  border-radius: 999px;
+  background: #2563eb;
+  color: white;
+  padding: 10px 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
 .intro {
   border-radius: 28px;
   background: linear-gradient(145deg, #1e3a8a, #2563eb 60%, #0f766e);
