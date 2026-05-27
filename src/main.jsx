@@ -30,6 +30,7 @@ const guides = [
 
 function App() {
   const [online, setOnline] = useState(navigator.onLine);
+  const isPrivacyPage = window.location.pathname === '/privacy';
   const [activeView, setActiveView] = useState('services');
   const [mode, setMode] = useState('community');
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
@@ -158,6 +159,35 @@ function App() {
     } catch {
       setToast('Mock service update queued.');
     }
+  }
+
+  if (isPrivacyPage) {
+    return <main className="app-shell" style={{ padding: '24px', background: '#f8fafc' }}>
+      <header style={{ marginBottom: '24px' }}>
+        <div className="brand"><span>PF</span><div><strong>PulseFlow</strong><small>Privacy Policy</small></div></div>
+      </header>
+      <section className="content-card" style={{ padding: '20px', fontSize: '14px', lineHeight: '1.6', color: '#334155' }}>
+        <h2>Privacy Policy</h2>
+        <p className="hint">Effective Date: May 27, 2026</p>
+        
+        <p>At <strong>PulseFlow Connect</strong>, we are committed to protecting your privacy. This policy explains how we handle your information when using our Progressive Web App (PWA) and WhatsApp notifications.</p>
+        
+        <h3>1. Information We Collect</h3>
+        <p><strong>Local Reports</strong>: Issues reported on service accessibility are stored <em>locally</em> on your device using browser localStorage. We do not store these in a remote centralized database in this POC.</p>
+        <p><strong>WhatsApp Contacts</strong>: If you explicitly request updates, we collect your first name/nickname and WhatsApp number. These are transmitted to Meta Cloud APIs solely to deliver authorized notification updates.</p>
+        
+        <h3>2. How We Use Information</h3>
+        <p>We use your contact info solely to trigger requested updates. Your data is never sold, shared, or used for advertising or marketing.</p>
+        
+        <h3>3. Data Retention</h3>
+        <p>Since data is saved locally on your device, you can clear it at any time by clearing your browser site data or cookies for this domain.</p>
+        
+        <h3>4. Meta Platform Data</h3>
+        <p>This service operates in strict accordance with the Meta WhatsApp Business Developer Terms. Our template-based messaging processes names and numbers with appropriate encryption endpoints.</p>
+        
+        <button className="wide-button" style={{ marginTop: '24px' }} onClick={() => window.location.href = '/'}>Back to App</button>
+      </section>
+    </main>;
   }
 
   return <main className="app-shell">
