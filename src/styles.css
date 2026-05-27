@@ -296,6 +296,37 @@ header {
   white-space: nowrap;
 }
 
+.action-item button.secondary {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.checklist {
+  display: grid;
+  gap: 8px;
+}
+
+.check-item {
+  display: flex;
+  align-items: start;
+  gap: 12px;
+}
+
+.check-item span {
+  margin-top: 0;
+  font-size: 16px;
+}
+
+.check-item strong {
+  font-size: 14px;
+}
+
+.check-item span + div span {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
 form {
   display: grid;
   gap: 10px;

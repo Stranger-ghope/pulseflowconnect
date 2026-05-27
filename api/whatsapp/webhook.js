@@ -13,7 +13,38 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    console.log('WhatsApp webhook event:', JSON.stringify(req.body));
+    const body = req.body;
+    console.log('WhatsApp Webhook POST received:', JSON.stringify(body));
+
+    try {
+      // Check if this is a WhatsApp status update event
+      const entry = body.entry?.[0];
+      const changes = entry?.changes?.[0];
+      const value = changes?.value;
+
+      if (value?.statuses?.[0]) {
+        const statusObj = value.statuses[0];
+        const messageId = statusObj.id;
+        const recipientId = statusObj.recipient_id;
+        const status = statusObj.status; // sent, delivered, read, failed
+
+        console.log(`[WhatsApp Event] Message ID: ${messageId} | Recipient: ${recipientId} | Status: ${status.toUpperCase()}`);
+        if (statusObj.errors) {
+          console.error('[WhatsApp Event Error]', JSON.stringify(statusObj.errors));
+        }
+      }
+
+      // Check if this is an incoming message event
+      if (value?.messages?.[0]) {
+        const messageObj = value.messages[0];
+        const from = messageObj.from;
+        const text = messageObj.text?.body || '[Non-text message]';
+        console.log(`[WhatsApp Message Received] From: ${from} | Message: "${text}"`);
+      }
+    } catch (err) {
+      console.error('Error processing webhook payload:', err.message);
+    }
+
     return res.status(200).json({ received: true });
   }
 

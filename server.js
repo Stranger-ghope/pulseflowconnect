@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'dist')));
 
 app.post('/api/whatsapp/notify', async (req, res) => {
-  const { phone, name } = req.body || {};
+  const { phone, name, templateKey } = req.body || {};
 
   if (!phone) {
     return res.status(400).json({ message: 'A WhatsApp number is required.' });
@@ -18,16 +18,32 @@ app.post('/api/whatsapp/notify', async (req, res) => {
   const token = process.env.WHATSAPP_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const apiVersion = process.env.WHATSAPP_API_VERSION || 'v20.0';
+  const templateLanguage = process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en';
+
+  // Map template keys to their approved names
+  const templateMapping = {
+    opt_in: process.env.WHATSAPP_TEMPLATE_OPT_IN || 'pulseflow_opt_in_confirm',
+    report: process.env.WHATSAPP_TEMPLATE_REPORT || 'pulseflow_report_update',
+    service: process.env.WHATSAPP_TEMPLATE_SERVICE || 'pulseflow_service_update'
+  };
+
+  const selectedTemplateKey = templateKey || 'opt_in';
+  const templateName = templateMapping[selectedTemplateKey];
+
+  if (!templateName) {
+    return res.status(400).json({ message: `Invalid template key: ${selectedTemplateKey}` });
+  }
 
   if (!token || !phoneNumberId) {
     return res.json({
       mode: 'demo',
-      message: 'Demo mode: update preference saved. Add Meta credentials on the server to send a real WhatsApp message.',
+      message: `Demo mode: update preference saved. (Would trigger WhatsApp template "${templateName}" in live mode)`,
+      templateUsed: templateName
     });
   }
 
   const cleanPhone = phone.replace(/[^0-9]/g, '');
-  const text = `Hello ${name || 'there'}, your PulseFlow Connect updates are active. Open the app for local service information.`;
+  const displayName = name || 'PulseFlow user';
 
   try {
     const response = await fetch(`https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`, {
@@ -39,8 +55,19 @@ app.post('/api/whatsapp/notify', async (req, res) => {
       body: JSON.stringify({
         messaging_product: 'whatsapp',
         to: cleanPhone,
-        type: 'text',
-        text: { preview_url: false, body: text },
+        type: 'template',
+        template: {
+          name: templateName,
+          language: { code: templateLanguage },
+          components: [
+            {
+              type: 'body',
+              parameters: [
+                { type: 'text', text: displayName },
+              ],
+            },
+          ],
+        },
       }),
     });
 
@@ -50,7 +77,7 @@ app.post('/api/whatsapp/notify', async (req, res) => {
       return res.status(response.status).json({ message: 'WhatsApp API request failed.', details: data });
     }
 
-    return res.json({ mode: 'live', message: 'Test WhatsApp update sent.', details: data });
+    return res.json({ mode: 'live', message: 'Template WhatsApp update sent.', details: data });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to contact WhatsApp API.', details: error.message });
   }

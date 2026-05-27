@@ -107,7 +107,28 @@ WHATSAPP_WEBHOOK_VERIFY_TOKEN=choose_a_private_verification_phrase
 
 Do not place Meta tokens in frontend code. Messages in this POC are intentionally neutral and do not include sensitive report details.
 
-For approved WhatsApp templates, use `{{1}}` for the user's first name or nickname. If a name is not supplied, the backend-safe fallback is `PulseFlow user`.
+For approved WhatsApp templates, configure these custom mapping variables in Vercel/environment:
+
+```text
+WHATSAPP_TEMPLATE_OPT_IN=pulseflow_opt_in_confirm
+WHATSAPP_TEMPLATE_REPORT=pulseflow_report_update
+WHATSAPP_TEMPLATE_SERVICE=pulseflow_service_update
+WHATSAPP_TEMPLATE_LANGUAGE=en
+```
+
+### Approved template bodies
+
+1. **Opt-in Confirmation (`pulseflow_opt_in_confirm`)**:
+   - *Body*: `Hello {{1}}, your PulseFlow updates are active. Open the app for local service information and follow-up notices.`
+   - *Trigger*: Requested automatically when a user signs up on the "Get updates" screen.
+2. **Report Update (`pulseflow_report_update`)**:
+   - *Body*: `Hello {{1}}, there is an update on a report you submitted. Please open PulseFlow to view the latest status.`
+   - *Trigger*: Fired when an admin logs in and clicks "Send update" in the follow-up queue.
+3. **Service Update (`pulseflow_service_update`)**:
+   - *Body*: `Hello {{1}}, a service you saved has new availability information. Please open PulseFlow to check the update.`
+   - *Trigger*: Fired when an admin clicks "Trigger Service Update" under Channel Status.
+
+All templates accept `{{1}}` as the user's first name/nickname, with `PulseFlow user` as the backend-safe fallback.
 
 ## WhatsApp webhook setup
 
