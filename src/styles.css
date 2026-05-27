@@ -261,6 +261,14 @@ header {
   border: 1px solid #edf2f7;
   border-radius: 18px;
   padding: 14px;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.accordion-item.expanded {
+  border-color: #93c5fd;
+  background: #fdfdfd;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.04);
 }
 
 .list-item + .list-item {

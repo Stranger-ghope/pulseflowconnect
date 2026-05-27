@@ -13,7 +13,20 @@ const services = [
   { name: 'Skills Hub', detail: 'Town Centre · 3.6 km · Few slots' },
 ];
 
-const guides = ['Digital safety', 'Career readiness', 'Small business basics'];
+const guides = [
+  {
+    title: 'Digital safety',
+    content: 'Protect your accounts with strong, unique passwords. Enable two-factor authentication (2FA) wherever possible. Avoid sharing sensitive personal information on public forums, and always verify message links.'
+  },
+  {
+    title: 'Career readiness',
+    content: 'Keep your CV brief and highlight practical achievements. Practice a 30-second summary of your skills, seek local networking groups, and gather continuous feedback to refine your professional profile.'
+  },
+  {
+    title: 'Small business basics',
+    content: 'Monitor daily operations and cash flow closely. Maintain clear, simple customer ledgers, source materials locally, and build trust with your community using neutral WhatsApp alerts for product updates.'
+  }
+];
 
 function App() {
   const [online, setOnline] = useState(navigator.onLine);
@@ -26,6 +39,7 @@ function App() {
   const [toast, setToast] = useState('');
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstallHelp, setShowInstallHelp] = useState(false);
+  const [expandedGuide, setExpandedGuide] = useState(null);
   const [reports, setReports] = useState(() => {
     const savedReports = localStorage.getItem('pulseflow-reports');
     return savedReports ? JSON.parse(savedReports) : initialReports;
@@ -86,11 +100,12 @@ function App() {
         body: JSON.stringify({ phone: subscriberPhone, name: subscriberName, templateKey: 'opt_in' }),
       });
       const result = await response.json();
-      setToast(result.message || 'Update request saved.');
-      
+      const modeTag = result.mode === 'live' ? '(Live)' : '(Demo)';
+      setToast(`${result.message || 'Update request saved.'} ${modeTag}`);
+
       // Save last subscriber to local storage for admin follow-up testing
       localStorage.setItem('pulseflow-last-subscriber', JSON.stringify({ name: subscriberName, phone: subscriberPhone }));
-      
+
       setName('');
       setPhone('+265');
     } catch {
@@ -106,7 +121,7 @@ function App() {
     }
 
     const { name: subName, phone: subPhone } = JSON.parse(savedSubscriber);
-    setToast(`Sending report update to ${subName} (${subPhone})...`);
+    setToast(`Sending report update to ${subName}...`);
 
     try {
       const response = await fetch('/api/whatsapp/notify', {
@@ -115,7 +130,8 @@ function App() {
         body: JSON.stringify({ phone: subPhone, name: subName, templateKey: 'report' }),
       });
       const result = await response.json();
-      setToast(result.message || `Update sent for: ${report.issue}`);
+      const modeTag = result.mode === 'live' ? '(Live)' : '(Demo)';
+      setToast(`${result.message || `Update sent for: ${report.issue}`} ${modeTag}`);
     } catch {
       setToast(`Mock update queued for: ${report.issue}`);
     }
@@ -144,32 +160,11 @@ function App() {
     }
   }
 
-  async function installApp() {
-    if (!installPrompt) {
-      setShowInstallHelp(true);
-      return;
-    }
-
-    installPrompt.prompt();
-    await installPrompt.userChoice;
-    setInstallPrompt(null);
-  }
-
   return <main className="app-shell">
     <header>
       <div className="brand"><span>PF</span><div><strong>PulseFlow</strong><small>Community support finder</small></div></div>
       <div className="status">{online ? <Wifi size={15} /> : <CloudOff size={15} />}{online ? 'Online' : 'Offline'}</div>
     </header>
-
-    <section className="install-card">
-      <div><strong>Install this app</strong><span>Save PulseFlow to your phone home screen for quicker access.</span></div>
-      <button onClick={installApp}>Install</button>
-    </section>
-
-    {showInstallHelp && <section className="install-help">
-      <strong>Manual install</strong>
-      <span>In Chrome, tap the three-dot menu and choose Add to Home screen. If it is missing, clear this site's data and reopen it.</span>
-    </section>}
 
     <nav className="mode-switch">
       <button onClick={() => setMode('community')} className={mode === 'community' ? 'active' : ''}>Community app</button>
@@ -201,7 +196,32 @@ function App() {
 
         {activeView === 'guides' && <>
           <h2>Saved guides</h2>
-          {guides.map((guide) => <article className="list-item" key={guide}><strong>{guide}</strong><span>Available on this device after opening.</span></article>)}
+          <p className="hint">Tap any guide topic below to read the contents on this device. Content is saved for offline use.</p>
+          {guides.map((guide) => {
+            const isExpanded = expandedGuide === guide.title;
+            return (
+              <article 
+                className={`list-item accordion-item ${isExpanded ? 'expanded' : ''}`} 
+                key={guide.title}
+                onClick={() => setExpandedGuide(isExpanded ? null : guide.title)}
+                style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <strong>{guide.title}</strong>
+                  <span style={{ fontSize: '12px', color: '#3b82f6', fontWeight: '800', marginTop: 0 }}>
+                    {isExpanded ? 'Hide' : 'Read'}
+                  </span>
+                </div>
+                {isExpanded ? (
+                  <p style={{ marginTop: '10px', fontSize: '13.5px', color: '#334155', lineHeight: '1.5', background: '#f8fafc', padding: '10px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                    {guide.content}
+                  </p>
+                ) : (
+                  <span style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Tap to expand this guide...</span>
+                )}
+              </article>
+            );
+          })}
         </>}
 
         {activeView === 'report' && <>
