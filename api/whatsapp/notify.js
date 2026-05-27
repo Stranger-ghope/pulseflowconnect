@@ -38,6 +38,21 @@ module.exports = async function handler(req, res) {
 
   const cleanPhone = phone.replace(/[^0-9]/g, '');
   const displayName = name || 'PulseFlow user';
+  const templatePayload = {
+    name: templateName,
+    language: { code: templateLanguage },
+  };
+
+  if (selectedTemplateKey === 'opt_in') {
+    templatePayload.components = [
+      {
+        type: 'body',
+        parameters: [
+          { type: 'text', text: displayName },
+        ],
+      },
+    ];
+  }
 
   try {
     const response = await fetch(`https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`, {
@@ -50,25 +65,14 @@ module.exports = async function handler(req, res) {
         messaging_product: 'whatsapp',
         to: cleanPhone,
         type: 'template',
-        template: {
-          name: templateName,
-          language: { code: templateLanguage },
-          components: [
-            {
-              type: 'body',
-              parameters: [
-                { type: 'text', text: displayName },
-              ],
-            },
-          ],
-        },
+        template: templatePayload,
       }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      return res.status(response.status).json({ message: 'WhatsApp API request failed.', details: data });
+      return res.status(response.status).json({ mode: 'live', message: 'WhatsApp API request failed.', templateUsed: templateName, details: data });
     }
 
     return res.json({ mode: 'live', message: 'Template WhatsApp update sent.', details: data });

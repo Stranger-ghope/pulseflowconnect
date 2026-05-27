@@ -41,6 +41,10 @@ function App() {
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstallHelp, setShowInstallHelp] = useState(false);
   const [expandedGuide, setExpandedGuide] = useState(null);
+  const [participants, setParticipants] = useState(() => {
+    const savedParticipants = localStorage.getItem('pulseflow-participants');
+    return savedParticipants ? JSON.parse(savedParticipants) : [];
+  });
   const [reports, setReports] = useState(() => {
     const savedReports = localStorage.getItem('pulseflow-reports');
     return savedReports ? JSON.parse(savedReports) : initialReports;
@@ -70,6 +74,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('pulseflow-reports', JSON.stringify(reports));
   }, [reports]);
+
+  useEffect(() => {
+    localStorage.setItem('pulseflow-participants', JSON.stringify(participants));
+  }, [participants]);
 
   const activeReports = useMemo(() => reports.filter((report) => report.status !== 'Resolved').length, [reports]);
 
@@ -104,8 +112,20 @@ function App() {
       const modeTag = result.mode === 'live' ? '(Live)' : '(Demo)';
       setToast(`${result.message || 'Update request saved.'} ${modeTag}`);
 
-      // Save last subscriber to local storage for admin follow-up testing
-      localStorage.setItem('pulseflow-last-subscriber', JSON.stringify({ name: subscriberName, phone: subscriberPhone }));
+      const participant = {
+        name: subscriberName,
+        phone: subscriberPhone,
+        status: 'Opted in',
+        joinedAt: new Date().toLocaleString(),
+      };
+      setParticipants((currentParticipants) => {
+        const existingParticipant = currentParticipants.find((item) => item.phone === subscriberPhone);
+        if (existingParticipant) {
+          return currentParticipants.map((item) => item.phone === subscriberPhone ? { ...item, ...participant } : item);
+        }
+        return [participant, ...currentParticipants];
+      });
+      localStorage.setItem('pulseflow-last-subscriber', JSON.stringify(participant));
 
       setName('');
       setPhone('+265');
@@ -114,51 +134,38 @@ function App() {
     }
   }
 
-  async function queueAdminUpdate(report) {
-    const savedSubscriber = localStorage.getItem('pulseflow-last-subscriber');
-    if (!savedSubscriber) {
+  async function sendParticipantTemplate(participant, templateKey, fallbackMessage) {
+    if (!participant) {
       setToast('No active subscriber. Go to "Get updates" in Community app and register a number first.');
       return;
     }
 
-    const { name: subName, phone: subPhone } = JSON.parse(savedSubscriber);
-    setToast(`Sending report update to ${subName}...`);
+    setToast(`Sending ${templateKey} update to ${participant.name}...`);
 
     try {
       const response = await fetch('/api/whatsapp/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: subPhone, name: subName, templateKey: 'report' }),
+        body: JSON.stringify({ phone: participant.phone, name: participant.name, templateKey }),
       });
       const result = await response.json();
+      if (!response.ok) {
+        setToast(`${result.message || 'WhatsApp request failed.'} Template: ${result.templateUsed || templateKey}`);
+        return;
+      }
       const modeTag = result.mode === 'live' ? '(Live)' : '(Demo)';
-      setToast(`${result.message || `Update sent for: ${report.issue}`} ${modeTag}`);
+      setToast(`${result.message || fallbackMessage} ${modeTag}`);
     } catch {
-      setToast(`Mock update queued for: ${report.issue}`);
+      setToast('Update saved locally. WhatsApp API could not be reached.');
     }
   }
 
-  async function sendServiceUpdate() {
-    const savedSubscriber = localStorage.getItem('pulseflow-last-subscriber');
-    if (!savedSubscriber) {
-      setToast('No active subscriber. Go to "Get updates" in Community app and register a number first.');
-      return;
-    }
+  function queueAdminUpdate(report, participant = participants[0]) {
+    sendParticipantTemplate(participant, 'report', `Update sent for: ${report.issue}`);
+  }
 
-    const { name: subName, phone: subPhone } = JSON.parse(savedSubscriber);
-    setToast(`Sending service update to ${subName}...`);
-
-    try {
-      const response = await fetch('/api/whatsapp/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: subPhone, name: subName, templateKey: 'service' }),
-      });
-      const result = await response.json();
-      setToast(result.message || 'Service update sent.');
-    } catch {
-      setToast('Mock service update queued.');
-    }
+  function sendServiceUpdate(participant = participants[0]) {
+    sendParticipantTemplate(participant, 'service', 'Service update sent.');
   }
 
   if (isPrivacyPage) {
@@ -289,8 +296,22 @@ function App() {
           <article><Users /><strong>1,248</strong><span>People reached</span></article>
           <article><BookOpen /><strong>326</strong><span>Guides saved</span></article>
           <article><MessageSquareWarning /><strong>{activeReports}</strong><span>Open follow-ups</span></article>
-          <article><Bell /><strong>Demo</strong><span>WhatsApp mode</span></article>
+          <article><Bell /><strong>Live</strong><span>WhatsApp Cloud API</span></article>
         </section>
+        <h3>Registered participants</h3>
+        <p className="hint">POC storage uses this browser only. In production, participant consent and opt-out records would be stored securely in a database.</p>
+        <div className="participant-list">
+          {participants.length === 0 ? <article className="list-item"><strong>No participants yet</strong><span>Use Get updates in the community app to register a WhatsApp number.</span></article> : participants.map((participant) => <article className="list-item participant-item" key={participant.phone}>
+            <div>
+              <strong>{participant.name}</strong>
+              <span>{participant.phone} · {participant.status} · {participant.joinedAt}</span>
+            </div>
+            <div className="participant-actions">
+              <button onClick={() => sendParticipantTemplate(participant, 'report', 'Report update sent.')}>Report update</button>
+              <button className="secondary" onClick={() => sendServiceUpdate(participant)}>Service update</button>
+            </div>
+          </article>)}
+        </div>
         <h3>Follow-up queue</h3>
         {reports.map((report) => <article className="list-item action-item" key={`${report.issue}-${report.status}`}><div><strong>{report.issue}</strong><span>Status: {report.status}</span></div><button onClick={() => queueAdminUpdate(report)}>Send update</button></article>)}
         
@@ -298,7 +319,7 @@ function App() {
         <article className="list-item action-item">
           <div>
             <strong>WhatsApp Cloud API</strong>
-            <span>Active templates: opt-in, report updates, service updates.</span>
+            <span>Live Meta Cloud API connected. Active templates: opt-in, report updates, service updates.</span>
           </div>
           <button className="secondary" onClick={sendServiceUpdate}>Trigger Service Update</button>
         </article>
