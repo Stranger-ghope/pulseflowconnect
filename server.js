@@ -18,7 +18,7 @@ app.post('/api/whatsapp/notify', async (req, res) => {
   const token = process.env.WHATSAPP_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const apiVersion = process.env.WHATSAPP_API_VERSION || 'v20.0';
-  const templateLanguage = process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en';
+  const templateLanguage = process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en_US';
 
   // Map template keys to their approved names
   const templateMapping = {
